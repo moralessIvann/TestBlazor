@@ -1,0 +1,377 @@
+https://github.com/CodigoEstudiante/094_ProyectoCrudBlazor
+https://github.com/moralessIvann/accountingrecords/tree/master
+
+1. create db & tables
+
+create database DBTestCRUD
+use DBTestCRUD
+
+/*
+create table deparment(
+idDepartment int primary key identity (1,1),
+departmentName varchar(50) not null
+)
+*/
+
+create table employee(
+idEmployee int primary key identity(1,1),
+fullName varchar(50) not null,
+/*idDepartment int references Department(idDepartment) not null*/
+income int not null,
+contractDate date not null
+)
+
+
+
+2. insert some random values to the tables
+
+/*
+insert into deparment(departmentName) values
+('Marketing')
+('IT')
+*/
+
+insert into employee (fullName, income, contractDate) values 
+('Jhonn Connor', 5500, GETDATE())
+
+/*
+select * from employee
+*/
+
+
+
+3. create empty or blank project project in VS
+4. add ASP.NET Core Web API named as TestBlazor.Server (use .NET7 & uncheck config for HTTPS) and create it.
+
+5. config DB in .Server by installing the following packages:
+
+Microsoft.EntityFrameworkCore.SqlServer (use v.7)
+Microsoft.EntityFrameworkCore.Tools (use v.7)
+
+
+
+
+6. create Models folder in the .Server project
+7. execute Scaffold command to generate the references from the DB tables:
+Scaffold-DbContext "Server=localhost; DataBase=DBTestBlazor; Integrated Security=True; TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutPutDir Models
+
+8. set connection strign in appsettings.json
+{
+  "ConnectionStrings": {
+    "sqlstr": "Server=localhost; DataBase=DBTestBlazor; Integrated Security=True; TrustServerCertificate=True;"
+  },
+  "Logging": {}
+  },
+  "AllowedHosts": "*"
+}
+
+
+
+9. add connection string in Program.cs:
+builder.Services.AddDbContext<DbtestBlazorContext>(option =>
+{
+    option.UseSqlServer(builder.Configuration.GetConnectionString("sqlstr"));
+
+});
+
+
+10. create biblioteca de clases in the solution as TestBlazor.SharedLibrary, do not create this in the .Server project
+11. create employee DTO in biblioteca de clases:
+public class Employee
+{
+    public int IdEmployee { get; set; }
+
+    public string FullName { get; set; } = null!;
+
+    public int Income { get; set; }
+
+    public DateTime ContractDate { get; set; }
+}
+
+12. create TestBlazor.ResponseAPI class to change how to receive data from the .Server to the .Client (this is done later #18), 
+in a more generic way.
+public class ResponseAPI<T>
+{
+    public HttpStatusCode statusCode {  get; set; }
+    public bool IsCorrect { get; set; }
+    public T? Value { get; set; }
+    public string? Message { get; set; }
+}
+
+13. add TestBlazor.SharedLibrary reference to  .Server 'Dependencies'
+14. delete wheaterforecast files (two files)
+
+
+
+
+
+15. in  .Server Controllers folder, add a new api blank controller for EmployeeController
+16. add get and post methods in employee controller
+public class EmployeeController : ControllerBase
+{
+    private readonly DbtestBlazorContext _context;
+    public EmployeeController(DbtestBlazorContext context)
+    {
+        _context = context;
+    }
+
+    [HttpGet]
+    [Route("list")]
+    public async Task<IActionResult> ListEmployee()
+    {
+        var listEmployeeDTO = new List<EmployeeDTO>();
+        var responseAPI = new ResponseAPI<List<EmployeeDTO>>();
+
+        try
+        {
+            foreach (var item in await _context.Employees.OrderBy(x => x.IdEmployee).ToListAsync())
+            {
+                listEmployeeDTO.Add(new EmployeeDTO
+                {
+                    IdEmployee = item.IdEmployee,
+                    FullName = item.FullName,
+                    Income = item.Income,
+                    ContractDate = item.ContractDate,
+                });
+            }
+
+            responseAPI.StatusCode = HttpStatusCode.OK;
+            responseAPI.IsCorrect = true;
+            responseAPI.Value = listEmployeeDTO;
+
+        }
+        catch (Exception ex)
+        {
+            responseAPI.StatusCode = HttpStatusCode.InternalServerError;
+            responseAPI.IsCorrect = false;
+            responseAPI.Message = ex.Message;
+        }
+
+        return Ok(responseAPI);
+    }
+
+    [HttpPost]
+    [Route("save")]
+    public async Task<IActionResult> SaveEmployee(EmployeeDTO employee)
+    {
+        var responseAPI = new ResponseAPI<int>();
+
+        try
+        {
+            var new_employee = new Employee
+            {
+                FullName = employee.FullName,
+                Income = employee.Income,
+                ContractDate = employee.ContractDate,
+                
+            };
+
+            _context.Employees.Add(new_employee);
+            await _context.SaveChangesAsync();
+
+            if (new_employee.IdEmployee != 0)
+            {
+                responseAPI.StatusCode = HttpStatusCode.OK;
+                responseAPI.IsCorrect = true;
+                responseAPI.Value = new_employee.IdEmployee;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            responseAPI.StatusCode = HttpStatusCode.InternalServerError;
+            responseAPI.IsCorrect = false;
+            responseAPI.Message = ex.Message;
+        }
+
+        return Ok(responseAPI);
+    }
+
+    [HttpPut]
+    [Route("edit/{id}")]
+    public async Task<IActionResult> Editar(EmployeeDTO employee, int id)
+    {
+        var responseApi = new ResponseAPI<int>();
+
+        try
+        {
+
+            var edit_employee = await _context.Employees.FirstOrDefaultAsync(e => e.IdEmployee == id);
+
+            if (edit_employee != null)
+            {
+
+                edit_employee.FullName = employee.FullName;
+                edit_employee.Income = employee.Income;
+                edit_employee.ContractDate = employee.ContractDate;
+
+                _context.Employees.Update(edit_employee);
+                await _context.SaveChangesAsync();
+
+                responseApi.IsCorrect = true;
+                responseApi.Value = edit_employee.IdEmployee;
+
+            }
+            else
+            {
+                responseApi.IsCorrect = false;
+                responseApi.Message = "Employee not found";
+            }
+
+        }
+        catch (Exception ex)
+        {
+            responseApi.IsCorrect = false;
+            responseApi.Message = ex.Message;
+        }
+
+        return Ok(responseApi);
+    }
+
+    
+    [HttpDelete]
+    [Route("Eliminar/{id}")]
+    public async Task<IActionResult> Eliminar(int id)
+    {
+        var responseApi = new ResponseAPI<int>();
+
+        try
+        {
+
+            var delete_employee = await _context.Employees.FirstOrDefaultAsync(e => e.IdEmployee == id);
+
+            if (delete_employee != null)
+            {
+                _context.Employees.Remove(delete_employee);
+                await _context.SaveChangesAsync();
+
+                responseApi.IsCorrect = true;
+            }
+            else
+            {
+                responseApi.IsCorrect = false;
+                responseApi.Message = "Employee not found";
+            }
+
+        }
+        catch (Exception ex)
+        {
+
+            responseApi.IsCorrect = false;
+            responseApi.Message = ex.Message;
+        }
+
+        return Ok(responseApi);
+    }
+}
+
+
+
+
+17. when employee api controller methods are ready, active CORS in program.cs, this bc server project and client project
+are executed in differents urls
+builder.Services.AddCors(opciones => {
+    opciones.AddPolicy("newPolicy", app =>
+    {
+        app.AllowAnyOrigin()
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
+
+app.UseCors("newPolicy");
+
+
+
+
+18. .Server is done, now create the .Client a blazor app web assembly as TestBlazor.Client
+(use .NET7 & uncheck config for HTTPS) and create it.
+19. then, add .SharedLibrary to .Client dependency
+
+20. execute app, and copy web adress from the swagger API in to the .Client Programs file:
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5046") });
+
+21. add a Services folder in the .Client
+22. add IEmployee in Services
+public interface IEmployeeService
+{
+    Task<List<EmployeeDTO>> ListEmployee();
+    Task<int> SaveEmployee(EmployeeDTO employee);
+    Task<int> EditEmployee(EmployeeDTO empleado);
+    Task<bool> DeleteEmployee(int id);
+}
+
+23. add Employee class in Services implementing Interface
+public class EmployeeService : IEmployeeService
+{
+    private readonly HttpClient _httpClient; //to enable using http services when request to api server
+
+    public EmployeeService(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+    public async Task<bool> DeleteEmployee(int id)
+    {
+        var result = await _httpClient.DeleteAsync($"api/employee/delete_employee/{id}");
+        var response = await result.Content.ReadFromJsonAsync<ResponseAPI<int>>();
+
+        if (response!.IsCorrect)
+            return response.IsCorrect!;
+        else
+            throw new Exception(response.Message);
+    }
+
+    public async Task<int> EditEmployee(EmployeeDTO employee)
+    {
+        var result = await _httpClient.PutAsJsonAsync($"api/employee/edit_employee/{employee.IdEmployee}", employee);
+        var response = await result.Content.ReadFromJsonAsync<ResponseAPI<int>>();
+
+        if (response!.IsCorrect)
+            return response.Value!;
+        else
+            throw new Exception(response.Message);
+    }
+
+    public async Task<List<EmployeeDTO>> ListEmployee()
+    {
+        var result = await _httpClient.GetFromJsonAsync<ResponseAPI<List<EmployeeDTO>>>("api/employee/list_employee");
+
+        if (result!.IsCorrect)
+            return result.Value!;
+        else
+            throw new Exception(result.Message);
+    }
+
+    public async Task<int> SaveEmployee(EmployeeDTO employee)
+    {
+        var result = await _httpClient.PostAsJsonAsync("api/employee/save_employee", employee);
+        var response = await result.Content.ReadFromJsonAsync<ResponseAPI<int>>();
+
+        if (response!.IsCorrect)
+            return response.Value!;
+        else
+            throw new Exception(response.Message);
+    }
+}
+
+
+
+24. when Services are done, register this service in .Clients Program
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
+25.  install sweet alert
+https://github.com/Basaingeal/Razor.SweetAlert2
+package: CurrieTechnologies.Razor.SweetAlert2
+<script src="_content/CurrieTechnologies.Razor.SweetAlert2/sweetAlert2.min.js"></script>
+
+builder.Services.AddSweetAlert2();
+
+directives for comps:
+@using CurrieTechnologies.Razor.SweetAlert2;
+@inject SweetAlertService Swal;
+
+
+26. create Employee razor comp in .Clients Pages folder
+
+
+

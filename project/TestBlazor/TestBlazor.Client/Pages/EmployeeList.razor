@@ -1,0 +1,90 @@
+﻿@page "/employeelist"
+
+@using TestBlazor.Client.Services
+@using TestBlazor.SharedLibrary
+@using CurrieTechnologies.Razor.SweetAlert2;
+
+@inject IEmployeeService employeeService;
+@inject SweetAlertService Swal;
+
+<h3>Employee</h3>
+
+<a class="btn btn-success btn-sm mb-3" href="newemployee">Add New Employee</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Income</th>
+            <th>Contract Date</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (employeeList == null)
+        {
+            <tr>
+                <td colspan="5" align="center">
+                    <img style="width:50px" src="https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif" />
+                </td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in employeeList)
+            {
+                <tr>
+                    <td>@item.FullName</td>
+                    <td>@item.Income</td>
+                    <td>@item.ContractDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm" href="newemployee/@item.IdEmployee">
+                            <i class="oi oi-pencil"></i>
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm ms-2" @onclick="(() => DeleteEmployee(item.IdEmployee))">
+                            <i class="oi oi-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+@code {
+
+    List<EmployeeDTO>? employeeList = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employeeList = await employeeService.ListEmployee();
+    }
+
+    private async Task DeleteEmployee(int id)
+    {
+        var employee_deleted = await employeeService.DeleteEmployee(id);
+
+        if (employee_deleted)
+            employeeList = employeeList!.FindAll(e => e.IdEmployee != id);
+        /*
+        var swal_result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Delete Employee",
+                Text = "Are you sure?",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton = true
+            });
+
+        if (swal_result.IsConfirmed)
+        {
+            var employee_deleted = await employeeService.DeleteEmployee(id);
+
+            if (employee_deleted)
+                employeeList = employeeList!.FindAll(e => e.IdEmployee != id);
+
+        }
+        */
+    }
+}

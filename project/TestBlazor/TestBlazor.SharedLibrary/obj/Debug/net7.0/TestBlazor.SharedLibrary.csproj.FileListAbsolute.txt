@@ -1,0 +1,11 @@
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\bin\Debug\net7.0\TestBlazor.SharedLibrary.deps.json
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\bin\Debug\net7.0\TestBlazor.SharedLibrary.dll
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\bin\Debug\net7.0\TestBlazor.SharedLibrary.pdb
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\obj\Debug\net7.0\TestBlazor.SharedLibrary.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\obj\Debug\net7.0\TestBlazor.SharedLibrary.AssemblyInfoInputs.cache
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\obj\Debug\net7.0\TestBlazor.SharedLibrary.AssemblyInfo.cs
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\obj\Debug\net7.0\TestBlazor.SharedLibrary.csproj.CoreCompileInputs.cache
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\obj\Debug\net7.0\TestBlazor.SharedLibrary.dll
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\obj\Debug\net7.0\refint\TestBlazor.SharedLibrary.dll
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\obj\Debug\net7.0\TestBlazor.SharedLibrary.pdb
+C:\Users\Dell\Desktop\testBlazor\project\TestBlazor\TestBlazor.SharedLibrary\obj\Debug\net7.0\ref\TestBlazor.SharedLibrary.dll

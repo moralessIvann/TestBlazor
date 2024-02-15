@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "5YpDIZgFfGztzxzKnidzqZ51OOnulpy15QGGr/v6VN8=",
+  "Source": "TestBlazor.ServerAPI",
+  "BasePath": "_content/TestBlazor.ServerAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

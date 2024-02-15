@@ -1,0 +1,78 @@
+﻿@page "/newemployee"
+@page "/newemployee/{idEmployeeEdit:int}"
+
+@using TestBlazor.Client.Services
+@using TestBlazor.SharedLibrary
+@using CurrieTechnologies.Razor.SweetAlert2;
+
+@inject IEmployeeService employeeService;
+@inject SweetAlertService Swal;
+@inject NavigationManager navegation;
+
+<h3>@title</h3>
+
+<EditForm Model="employee" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+
+    <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <InputText class="form-control" @bind-Value="employee.FullName"></InputText>
+        <ValidationMessage For="@(() => employee.FullName)"></ValidationMessage>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Income</label>
+        <InputNumber class="form-control" @bind-Value="employee.Income"></InputNumber>
+        <ValidationMessage For="@(() => employee.Income)"></ValidationMessage>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Contract Date</label>
+        <InputDate class="form-control" @bind-Value="employee.ContractDate"></InputDate>
+        <ValidationMessage For="@(() => employee.ContractDate)"></ValidationMessage>
+    </div>
+
+    <button class="btn btn-primary" type="submit">
+        @textBtn
+    </button>
+
+    <a class="btn btn-warning" href="employeelist">Back</a>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public int idEmployeeEdit { get; set; } = 0;
+
+    EmployeeDTO employee = new EmployeeDTO();
+
+    string title = string.Empty;
+    string textBtn = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (idEmployeeEdit != 0)
+        {
+            employee = await employeeService.SearchEmployee(idEmployeeEdit);
+            textBtn = "Update Employee";
+            title = "Edit Employee";
+        }
+        else
+        {
+            employee.ContractDate = DateTime.Today;
+            textBtn = "Save Employee";
+            title = "New Employee";
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        int returnedId = 0;
+        if (idEmployeeEdit == 0)
+            returnedId = await employeeService.SaveEmployee(employee);
+        else
+            returnedId = await employeeService.EditEmployee(employee); //
+            
+
+        if (returnedId != 0)
+            navegation.NavigateTo("/employeelist"); //if not zero, succed when saving or editing
+    }
+}
